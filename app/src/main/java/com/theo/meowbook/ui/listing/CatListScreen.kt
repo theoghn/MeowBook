@@ -1,4 +1,4 @@
-package com.theo.meowbook.ui
+package com.theo.meowbook.ui.listing
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -7,14 +7,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -25,7 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FilterAlt
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,6 +36,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -46,7 +44,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -54,7 +52,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -63,6 +60,7 @@ import com.theo.meowbook.R
 import com.theo.meowbook.api.Order
 import com.theo.meowbook.model.Breed
 import com.theo.meowbook.model.CatListItem
+import com.theo.meowbook.ui.components.ErrorAndEmptyView
 import com.theo.meowbook.ui.components.ShimmerBox
 import com.theo.meowbook.utils.DataState
 import com.theo.meowbook.utils.data
@@ -74,20 +72,21 @@ import com.theo.meowbook.utils.select
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CatListScreen(
-    viewModel: CatListViewModel = hiltViewModel()
+    viewModel: CatListViewModel = hiltViewModel(),
+    onCatClick: (String) -> Unit
 ) {
     val catListState by viewModel.catListFLow.collectAsState()
     val breedsListState by viewModel.breedsFlow.collectAsState()
-    var selectedBreedIds by remember { mutableStateOf(emptyList<String>()) }
-    var isWithInfoSelected by remember { mutableStateOf(false) }
-    var orderBy by remember { mutableStateOf(Order.RANDOM) }
+    var selectedBreedIds by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var isWithInfoSelected by rememberSaveable { mutableStateOf(false) }
+    var orderBy by rememberSaveable { mutableStateOf(Order.RANDOM) }
     val isRefreshing by viewModel.isRefreshing.collectAsState()
 
     val listState = rememberLazyListState()
     val pullToRefreshState = rememberPullToRefreshState()
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(listState, catListState) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
@@ -110,8 +109,7 @@ fun CatListScreen(
             CatListTopBar(onFilterClick = {
                 if (breedsListState.isSuccess) {
                     showBottomSheet = true
-                }
-                else if(breedsListState.isFailed) {
+                } else if (breedsListState.isFailed) {
                     viewModel.loadBreeds()
                 }
             })
@@ -128,7 +126,10 @@ fun CatListScreen(
             orderBy = orderBy,
             isRefreshing = isRefreshing,
             listState = listState,
-            pullToRefreshState = pullToRefreshState
+            pullToRefreshState = pullToRefreshState,
+            onCatClick = { catId ->
+                onCatClick(catId)
+            }
         )
     }
 
@@ -158,7 +159,7 @@ fun CatListScreen(
 }
 
 @Composable
-fun BottomSheetContent(
+private fun BottomSheetContent(
     modifier: Modifier = Modifier,
     breedsList: List<Breed>,
     orderBy: Order,
@@ -176,7 +177,10 @@ fun BottomSheetContent(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(text = stringResource(R.string.cat_list_filter_title), style = MaterialTheme.typography.headlineSmall)
+        Text(
+            text = stringResource(R.string.cat_list_filter_title),
+            style = MaterialTheme.typography.headlineSmall
+        )
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -259,7 +263,7 @@ fun BottomSheetContent(
 
 
 @Composable
-fun CatListTopBar(onFilterClick: () -> Unit) {
+private fun CatListTopBar(onFilterClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -297,7 +301,7 @@ fun CatListTopBar(onFilterClick: () -> Unit) {
 }
 
 @Composable
-fun CatListView(
+private fun CatListView(
     modifier: Modifier = Modifier,
     catListState: DataState<List<CatListItem>>,
     viewModel: CatListViewModel,
@@ -306,7 +310,8 @@ fun CatListView(
     orderBy: Order,
     isRefreshing: Boolean,
     listState: LazyListState,
-    pullToRefreshState: androidx.compose.material3.pulltorefresh.PullToRefreshState,
+    pullToRefreshState: PullToRefreshState,
+    onCatClick: (String) -> Unit
 ) {
     PullToRefreshBox(
         modifier = modifier
@@ -315,7 +320,11 @@ fun CatListView(
         state = pullToRefreshState,
         isRefreshing = isRefreshing,
         onRefresh = {
-            viewModel.onPullToRefresh(selectedBreeds, isWithInfoSelected, orderBy)
+            viewModel.onPullToRefresh(
+                breedIds = selectedBreeds,
+                withBreedInfo = isWithInfoSelected,
+                orderBy = orderBy
+            )
         },
         indicator = {
             Indicator(
@@ -337,7 +346,10 @@ fun CatListView(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     items(it) { catItem ->
-                        CatItem(catItem = catItem)
+                        CatItem(
+                            catItem = catItem,
+                            onClick = { onCatClick(catItem.id) }
+                        )
                     }
                 }
             },
@@ -359,7 +371,7 @@ fun CatListView(
 
 
 @Composable
-fun CatItem(
+private fun CatItem(
     catItem: CatListItem,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
@@ -386,13 +398,16 @@ fun CatItem(
                 .size(200.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .clickable(
-                    onClick = onClick
+                    onClick = {
+                        if (catItem.hasBreedInfo) {
+                            onClick()
+                        }
+                    }
                 ),
             loading = {
                 ShimmerBox(
                     modifier = Modifier
                         .fillMaxSize()
-
                 )
             },
             error = {
@@ -412,68 +427,29 @@ fun CatItem(
             }
         )
 
-        Box(
-            Modifier.weight(1f),
-            contentAlignment = Alignment.Center
-        ) {
+        if (catItem.hasBreedInfo) {
             Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .clickable(
-                        onClick = onClick
-                    )
+                Modifier.weight(1f),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(
+                Box(
                     modifier = Modifier
-                        .padding(12.dp)
-                        .size(24.dp),
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    contentDescription = null
-                )
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                        .clickable(
+                            onClick = onClick
+                        )
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .size(24.dp),
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        contentDescription = null
+                    )
+                }
             }
-        }
-    }
-}
-
-
-@Composable
-fun ErrorAndEmptyView(
-    modifier: Modifier = Modifier,
-    message: String,
-    onRetry: () -> Unit
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = Icons.Default.Warning,
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.error
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(Modifier.height(24.dp))
-
-        Button(onClick = onRetry) {
-            Icon(Icons.Default.Refresh, contentDescription = null)
-
-            Spacer(Modifier.width(8.dp))
-
-            Text(text = stringResource(R.string.cat_list_retry))
         }
     }
 }
