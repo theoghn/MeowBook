@@ -87,6 +87,7 @@ fun CatListScreen(
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var wantsToShowBottomSheet by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(listState, catListState) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
@@ -104,6 +105,14 @@ fun CatListScreen(
             }
     }
 
+    LaunchedEffect(wantsToShowBottomSheet, breedsListState) {
+        if (wantsToShowBottomSheet && breedsListState.isSuccess) {
+            showBottomSheet = true
+            // Reset the intent so it doesn't trigger again on configuration change.
+            wantsToShowBottomSheet = false
+        }
+    }
+
     Scaffold(
         topBar = {
             CatListTopBar(onFilterClick = {
@@ -111,6 +120,7 @@ fun CatListScreen(
                     showBottomSheet = true
                 } else if (breedsListState.isFailed) {
                     viewModel.loadBreeds()
+                    wantsToShowBottomSheet = true
                 }
             })
         }
