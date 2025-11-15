@@ -1,4 +1,4 @@
-package com.theo.meowbook.ui
+package com.theo.meowbook.ui.listing
 
 import com.theo.meowbook.api.Order
 import com.theo.meowbook.model.Breed
@@ -14,7 +14,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
 
 @HiltViewModel
 class CatListViewModel @Inject constructor(

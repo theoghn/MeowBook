@@ -17,10 +17,11 @@ object PersistenceModule {
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         return Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "meowbook.db"
-        ).build()
+                context,
+                AppDatabase::class.java,
+                "meowbook.db"
+            ).fallbackToDestructiveMigration(true)
+            .build()
     }
 
     @Provides

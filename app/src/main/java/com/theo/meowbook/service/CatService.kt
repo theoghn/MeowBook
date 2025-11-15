@@ -25,4 +25,6 @@ class CatService @Inject constructor(
 
     suspend fun getBreeds() = catApi.getBreeds()
 
+    suspend fun getCatDetails(imageId: String) = catApi.getCatDetails(imageId)
+
 }

@@ -5,11 +5,23 @@
     <string name="cat_list_filter_title">Filters</string>
     <string name="cat_list_order_by">Order by:</string>
     <string name="cat_list_breed_info">Include breed info:</string>
-    <string name="cat_list_filter_breeds">Filter by breeds:</string>
+    <string name="cat_list_filter_breeds">Select breeds:</string>
     <string name="cat_list_apply_filters">Apply Filters</string>
     <string name="app_title">MeowBook</string>
     <string name="cat_list_error_message">Failed to load cats. Please check your network connection and try again.</string>
     <string name="cat_list_retry">Retry</string>
+    <string name="cat_details_error_message">Could not load cat details.</string>
+    <string name="generic_wikipedia">Wikipedia</string>
+    <string name="generic_vetstreet">VetStreet</string>
+    <string name="cat_details_social_needs_label">Social Needs</string>
+    <string name="cat_details_child_friendly_label">Child Friendly</string>
+    <string name="cat_details_intelligence_label">Intelligence</string>
+    <string name="cat_details_affection_label">Affection Level</string>
+    <string name="cat_details_life_span_label">Life Span</string>
+    <string name="cat_temperament_label">Temperament</string>
+    <string name="cat_details_origin_label">Origin</string>
+    <string name="cat_details_life_years">%1$s years</string>
 
     <!-- Cat Details   -->
+
 </resources>
