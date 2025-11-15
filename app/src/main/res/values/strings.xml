@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">MeowBook</string>
+
+    <!-- Cat Listing   -->
+    <string name="cat_list_filter_title">Filters</string>
+    <string name="cat_list_order_by">Order by:</string>
+    <string name="cat_list_breed_info">Include breed info:</string>
+    <string name="cat_list_filter_breeds">Filter by breeds:</string>
+    <string name="cat_list_apply_filters">Apply Filters</string>
+    <string name="app_title">MeowBook</string>
+    <string name="cat_list_error_message">Failed to load cats. Please check your network connection and try again.</string>
+    <string name="cat_list_retry">Retry</string>
+
+    <!-- Cat Details   -->
 </resources>
